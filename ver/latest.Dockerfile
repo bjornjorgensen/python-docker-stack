@@ -1,19 +1,19 @@
 ARG BASE_IMAGE=debian
-ARG BASE_IMAGE_TAG=12
+ARG BASE_IMAGE_TAG=unstable
 ARG CUDA_IMAGE
 ARG CUDA_IMAGE_SUBTAG
 ARG BLAS=libopenblas-dev
 ARG CUDA_VERSION
 ARG PYTHON_VERSION
 
-FROM glcr.b-data.ch/python/psi/${PYTHON_VERSION}/${BASE_IMAGE}:${BASE_IMAGE_TAG} as psi
+#FROM glcr.b-data.ch/python/psi/${PYTHON_VERSION}/${BASE_IMAGE}:${BASE_IMAGE_TAG} AS psi
 
-FROM ${CUDA_IMAGE:-$BASE_IMAGE}:${CUDA_IMAGE:+$CUDA_VERSION}${CUDA_IMAGE:+-}${CUDA_IMAGE_SUBTAG:-$BASE_IMAGE_TAG}
+#FROM ${CUDA_IMAGE:-$BASE_IMAGE}:${CUDA_IMAGE:+$CUDA_VERSION}${CUDA_IMAGE:+-}${CUDA_IMAGE_SUBTAG:-$BASE_IMAGE_TAG}
 
-LABEL org.opencontainers.image.licenses="MIT" \
-      org.opencontainers.image.source="https://gitlab.b-data.ch/python/docker-stack" \
-      org.opencontainers.image.vendor="b-data GmbH" \
-      org.opencontainers.image.authors="Olivier Benz <olivier.benz@b-data.ch>"
+#LABEL org.opencontainers.image.licenses="MIT" \
+#      org.opencontainers.image.source="https://gitlab.b-data.ch/python/docker-stack" \
+#      org.opencontainers.image.vendor="b-data GmbH" \
+#      org.opencontainers.image.authors="Olivier Benz <olivier.benz@b-data.ch>"
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -26,18 +26,20 @@ ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG BUILD_START
 
-ENV BASE_IMAGE=${BASE_IMAGE}:${BASE_IMAGE_TAG} \
-    CUDA_IMAGE=${CUDA_IMAGE}${CUDA_IMAGE:+:}${CUDA_IMAGE:+$CUDA_VERSION}${CUDA_IMAGE:+-}${CUDA_IMAGE_SUBTAG} \
-    PARENT_IMAGE=${CUDA_IMAGE:-$BASE_IMAGE}:${CUDA_IMAGE:+$CUDA_VERSION}${CUDA_IMAGE:+-}${CUDA_IMAGE_SUBTAG:-$BASE_IMAGE_TAG} \
-    PYTHON_VERSION=${PYTHON_VERSION} \
-    BUILD_DATE=${BUILD_START}
+#ENV BASE_IMAGE=${BASE_IMAGE}:${BASE_IMAGE_TAG} \
+#    CUDA_IMAGE=${CUDA_IMAGE}${CUDA_IMAGE:+:}${CUDA_IMAGE:+$CUDA_VERSION}${CUDA_IMAGE:+-}${CUDA_IMAGE_SUBTAG} \
+#    PARENT_IMAGE=${CUDA_IMAGE:-$BASE_IMAGE}:${CUDA_IMAGE:+$CUDA_VERSION}${CUDA_IMAGE:+-}${CUDA_IMAGE_SUBTAG:-$BASE_IMAGE_TAG} \
+#    PYTHON_VERSION=${PYTHON_VERSION} \
+#    BUILD_DATE=${BUILD_START}
+FROM debian:unstable 
+
 
 ENV LANG=en_US.UTF-8 \
     TERM=xterm \
     TZ=Etc/UTC
 
 ## Install Python
-COPY --from=psi /usr/local /usr/local
+#COPY --from=psi /usr/local /usr/local
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
@@ -53,6 +55,7 @@ RUN apt-get update \
     unzip \
     zip \
     zlib1g-dev \
+    python3.12 \
   ## Update locale
   && sed -i "s/# $LANG/$LANG/g" /etc/locale.gen \
   && locale-gen \
@@ -66,5 +69,8 @@ RUN apt-get update \
   fi \
   ## Clean up
   && rm -rf /var/lib/apt/lists/*
+
+RUN ln -s /usr/bin/python3.12 /usr/bin/python
+RUN ln -s /usr/bin/python3.12 /usr/bin/python3
 
 CMD ["python3"]
